@@ -16,41 +16,6 @@ class WizLedHandler : LedHandler
     private UdpClient udpClient = new UdpClient();
     private bool isReady = false;
 
-    public void Start()
-    {
-        connect();
-        
-
-
-        
-    }
-
-    public void Update()
-    {
-        if (!isConnected()) connect();
-    }
-
-
-    public void OnDestroy()
-    {
-        disconnect();
-    }
-
-    private void connect()
-    {
-        udpClient.Connect(host, port);
-        sendColor(Color.black);
-        this.isReady = true;
-        Debug.Log("Connected " + host);
-    }
-
-    private void disconnect()
-    {
-        this.isReady = false;
-        sendColor(new Color(0,0,0,0));
-        udpClient.Close();
-        Debug.Log("Disconnected " + host);
-    }
 
     private void sendColor(Color color)
     {
@@ -76,30 +41,60 @@ class WizLedHandler : LedHandler
         return true;
     }
 
-    public override void innerProcess(List<Led> leds)
+    public override bool OnStart(List<Led> leds)
     {
-        if(leds.Count != 1)
+        if (leds.Count != 1)
         {
-            Debug.LogError("Wiz led handler can only handle one led!");
-            return;
+            Debug.LogError("Wiz led handler can only handle one led!", this);
+            return false;
         }
 
-        if(!isConnected()) {
-            Debug.LogWarning("Udp client not connected!");
-            return;
+        udpClient.Connect(host, port);
+        sendColor(Color.black);
+        this.isReady = true;
+        Debug.Log("Connected " + host, this);
+        return isConnected();
+    }
+
+    public override void OnStop(List<Led> leds)
+    {
+        this.isReady = false;
+        try
+        {
+            sendColor(new Color(0, 0, 0, 0));
+            udpClient.Close();
+        } catch (Exception e)
+        {
+            Debug.LogWarning(e);
+        }
+        udpClient = new UdpClient();
+        Debug.Log("Disconnected " + host, this);
+    }
+
+    public override bool OnUpdate(List<Led> leds)
+    {
+        if (leds.Count != 1)
+        {
+            Debug.LogError("Wiz led handler can only handle one led!", this);
+            return false;
         }
 
-        if(!isReady)
+        if (!isConnected())
         {
-            Debug.LogWarning("Not ready!");
-            return;
+            Debug.LogWarning("Udp client not connected!", this);
+            return false;
+        }
+
+        if (!isReady)
+        {
+            Debug.LogWarning("Not ready!", this);
+            return false;
         }
 
 
         Led led = leds[0];
 
         sendColor(led.color);
-
-
+        return isConnected();
     }
 }

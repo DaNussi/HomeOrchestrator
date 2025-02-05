@@ -5,14 +5,10 @@ using UnityEngine;
 
 class MonoLedShape : LedShape
 {
-    [SerializeField] private Color defaultColor = Color.black;
 
-    public override List<Led> getLeds()
+    public override List<Vector3> GeneratePositions()
     {
-        var position = this.transform.position;
-
-        var led = new Led(position, defaultColor);
-
-        return new List<Led> { led };
+        return new List<Vector3>() { this.transform.position };
     }
+
 }

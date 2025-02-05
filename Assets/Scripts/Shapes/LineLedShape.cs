@@ -11,19 +11,31 @@ class LineLedShape : LedShape
     [SerializeField] Transform to;
     [SerializeField] int amount;
 
-
-    public override List<Led> getLeds()
+    public override List<Vector3> GeneratePositions()
     {
+        List<Vector3> result = new List<Vector3>();
 
-        List<Led> result = new List<Led>();
+        if (amount <= 0) amount = 1;
 
-        for (int i = 0; i < amount; i++){
-            float n = i / (amount - 1);
-            Vector3 position = Vector3.Lerp(from.position, to.position, n);
-            Led led = new Led(position);
-            result.Add(led);
+        float delta = 1f / (amount - 1);
+        float index = 0;
+
+        if (amount == 1)
+        {
+            delta = 0f;
+            index = 0.5f;
+        }
+
+        for (int i = 0; i < amount; i++)
+        {
+            Vector3 position = Vector3.LerpUnclamped(from.position, to.position, index);
+            result.Add(position);
+
+
+            index += delta;
         }
 
         return result;
     }
+
 }
